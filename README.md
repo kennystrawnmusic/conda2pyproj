@@ -1,6 +1,6 @@
 # conda2pyproj: Conda-to-UniDep migration tool
 
-Although miniconda3 is great when you're just learning, hence why Hack The Box uses it for the AI Red Teamer job role path, it has its limitations, specifically when it comes to portability: how do you reuse the code for a bigger project?
+Although miniconda3 is great when you're just learning, hence why Hack The Box uses it for the [AI Red Teamer job role path](https://academy.hackthebox.com/path/preview/ai-red-teamer), it has its limitations, specifically when it comes to portability: how do you reuse the code for a bigger project?
 
 To work around this problem, I scripted together this tool, which:
 1. Autodetects the version of Python in the currently-active conda environment
