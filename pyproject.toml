@@ -1,0 +1,29 @@
+[project]
+name = "conda2pyproj"
+version = "0.1.0"
+description = "Tool for automating the process of migrating from conda to UniDep"
+dynamic = [
+    "dependencies",
+]
+requires-python = ">=3.11"
+
+[project.scripts]
+conda2pyproj = "conda2pyproj:main"
+
+[tool.unidep]
+channels = [
+    "conda-forge",
+    "defaults",
+]
+dependencies = [
+    "tomli-w",
+    "conda-lock",
+    "unidep",
+]
+
+[build-system]
+requires = [
+    "setuptools",
+    "unidep",
+]
+build-backend = "setuptools.build_meta"
