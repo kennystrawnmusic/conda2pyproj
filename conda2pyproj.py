@@ -30,7 +30,7 @@ def main():
     try:
         # Using shell=True for Windows conda.bat compatibility
         result = run(
-            ["conda", "env", "export", "--from-history"], 
+            ["conda", "env", "export"], 
             capture_output=True, text=True, check=True, shell=True
         )
         conda_env = safe_load(result.stdout)
