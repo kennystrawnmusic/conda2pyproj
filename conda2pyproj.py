@@ -5,8 +5,25 @@ from tomli_w import dump
 from subprocess import run, CalledProcessError
 from pathlib import Path
 from argparse import ArgumentParser
+from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 
-# The build backend script that lives in the target project
+def package_exists_on_pypi(package_name):
+    """Checks if a package exists on PyPI with a proper User-Agent."""
+    normalized_name = package_name.replace("_", "-")
+    url = f"https://pypi.org/pypi/{normalized_name}/json"
+    
+    # PyPI blocks basic urllib/python User-Agents frequently
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"}
+    try:
+        req = Request(url, headers=headers, method="HEAD")
+        with urlopen(req, timeout=5) as response:
+            return response.status == 200
+    except (HTTPError, URLError) as e:
+        return False
+    except Exception:
+        return False
+
 HOOK_FILE_TEMPLATE = """
 import shutil
 import os
@@ -17,38 +34,46 @@ from setuptools import build_meta as _orig
 # PEP 517 Required Hooks
 prepare_metadata_for_build_wheel = _orig.prepare_metadata_for_build_wheel
 build_sdist = _orig.build_sdist
-get_requires_for_build_wheel = _orig.get_requires_for_build_wheel
 
 def get_explicit_conda_urls():
-    print("[*] Fetching explicit conda URLs...")
+    print("[*] Hook: Fetching explicit conda URLs...")
     res = _run(["conda", "list", "--explicit"], capture_output=True, text=True, shell=True)
     return [line.strip() for line in res.stdout.splitlines() if line.startswith("https://")]
 
-def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
-    print("[*] Custom Build Hook: Starting Conda-to-Wheel conversion...")
-    
+def run_conda_press():
     temp_wheel_dir = Path("portable_wheels")
+    if temp_wheel_dir.exists():
+        return
+        
     temp_wheel_dir.mkdir(exist_ok=True)
-    
     urls = get_explicit_conda_urls()
+    
     if urls:
+        print("[*] Hook: Starting Conda-to-Wheel conversion...")
         for url in urls:
-            pkg_name = url.split('/')[-1]
-            print(f"--- Pressing: {pkg_name} ---")
+            pkg_name_raw = url.split('/')[-1]
+            base_name = pkg_name_raw.split('-')[0]
+            print(f"--- Pressing: {base_name} ---")
             _run(f"conda press --skip-python --fatten {url}", shell=True)
 
-        for wheel in Path(".").glob("*.whl"):
-            shutil.move(str(wheel), str(temp_wheel_dir / wheel.name))
-    
-    # Run the real build
-    result = _orig.build_wheel(wheel_directory, config_settings, metadata_directory)
-    
-    # Post-build Cleanup: Remove the temporary wheels directory
-    if temp_wheel_dir.exists():
-        print(f"[*] Cleaning up temporary wheels in {temp_wheel_dir}...")
-        shutil.rmtree(temp_wheel_dir)
-        
-    return result
+            # Normalization for pip resolver
+            for wheel in Path(".").glob(f"{base_name}*.whl"):
+                target_path = temp_wheel_dir / f"{base_name}-0.1.0-py3-none-any.whl"
+                shutil.move(str(wheel), str(target_path))
+
+def get_requires_for_build_wheel(config_settings=None):
+    run_conda_press()
+    return _orig.get_requires_for_build_wheel(config_settings)
+
+def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+    run_conda_press()
+    temp_wheel_dir = Path("portable_wheels")
+    try:
+        return _orig.build_wheel(wheel_directory, config_settings, metadata_directory)
+    finally:
+        if temp_wheel_dir.exists():
+            print(f"[*] Hook: Cleaning up {temp_wheel_dir}...")
+            shutil.rmtree(temp_wheel_dir)
 """
 
 def get_all_conda_channels():
@@ -80,17 +105,26 @@ def main():
 
     unidep_deps = []
 
-    blacklist = {"python", "_python_abi3_support"}
+    # Filter out system binaries and conda internals
+    blacklist = {"python", "_python_abi3_support", "conda", "mamba", "pip", "ca-certificates", "openssl", "vc", "vs2015_runtime"}
 
     for dep in conda_env.get('dependencies', []):
         if isinstance(dep, str):
             name = dep.split('=')[0]
-            if name not in blacklist:
+            if name in blacklist:
+                continue
+            
+            if package_exists_on_pypi(name):
+                print(f"  [PyPI] {name}")
                 unidep_deps.append(name)
+            else:
+                # Direct file reference for the build hook to fulfill
+                print(f"  [Conda-Only] {name} -> mapping to local wheel")
+                unidep_deps.append(f"{name} @ file://./portable_wheels/{name}-0.1.0-py3-none-any.whl")
+        
         elif isinstance(dep, dict) and 'pip' in dep:
             for pip_dep in dep['pip']:
-                if pip_dep not in blacklist:
-                    unidep_deps.append({"pip": pip_dep})
+                unidep_deps.append({"pip": pip_dep})
 
     pyproject = {
         "project": {
@@ -120,7 +154,8 @@ def main():
     with open(target_dir / "build_hooks.py", 'w', encoding='utf-8') as f:
         f.write(HOOK_FILE_TEMPLATE.strip())
 
-    print(f"Successfully generated project in: {target_dir.absolute()}")
+    print(f"\n[DONE] Project generated in: {target_dir.absolute()}")
+    print("To install: cd into the folder and run 'pip install -e .'")
 
 if __name__ == '__main__':
     main()
