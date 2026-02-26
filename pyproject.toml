@@ -1,6 +1,6 @@
 [project]
 name = "conda2pyproj"
-version = "0.1.1"
+version = "0.1.2"
 description = "Tool for automating the process of migrating from conda to UniDep"
 dynamic = [
     "dependencies",
