@@ -55,7 +55,7 @@ def main():
         "project": {
             "name": args.project_name,
             "version": args.version,
-            "description": args.project_description
+            "description": args.project_description,
             "dynamic": ["dependencies"],
             "requires-python": f">={version_info.major}.{version_info.minor}",
         },
