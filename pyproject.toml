@@ -1,6 +1,6 @@
 [project]
 name = "conda2pyproj"
-version = "0.1.5"
+version = "0.1.6"
 description = "Tool for automating the process of generating a new pyproject.toml from a conda venv"
 dynamic = [
     "dependencies",
