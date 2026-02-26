@@ -28,6 +28,7 @@ def main():
 
     parser.add_argument("--project-name", required=True, help="Name of the Python project to create from the Conda environment")
     parser.add_argument("--version", default="0.1.0", help="(Optional) Version of the target project (default: 0.1.0)")
+    
     args = parser.parse_args()
 
     py_version = f">={version_info.major}.{version_info.minor}"
