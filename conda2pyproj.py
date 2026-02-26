@@ -23,6 +23,7 @@ def main():
     parser = ArgumentParser(description="Tool for automating the process of migrating from conda to UniDep")
 
     parser.add_argument("--project-name", required=True, help="Name of the Python project to create from the Conda environment")
+    parser.add_argument("--project-description", required=True, help="Description of the Python project to create from the Conda environment")
     parser.add_argument("--version", default="0.1.0", help="(Optional) Version of the target project (default: 0.1.0)")
     
     args = parser.parse_args()
@@ -54,6 +55,7 @@ def main():
         "project": {
             "name": args.project_name,
             "version": args.version,
+            "description": args.project_description
             "dynamic": ["dependencies"],
             "requires-python": f">={version_info.major}.{version_info.minor}",
         },
