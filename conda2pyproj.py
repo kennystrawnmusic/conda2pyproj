@@ -31,8 +31,6 @@ def main():
     
     args = parser.parse_args()
 
-    py_version = f">={version_info.major}.{version_info.minor}"
-
     try:
         # Using shell=True for Windows conda.bat compatibility
         result = run(
@@ -64,7 +62,7 @@ def main():
             "version": args.version,
             # UniDep will automatically populate this field during build/install
             "dynamic": ["dependencies"],
-            "requires-python": py_version,
+            "requires-python": f">={version_info.major}.{version_info.minor}",
         },
         "tool": {
             "unidep": {
@@ -80,6 +78,7 @@ def main():
 
     toml_dir = Path(args.project_name)
     toml_dir.mkdir(exist_ok=True)
+    
     toml_file = toml_dir / "pyproject.toml"
 
     with open(toml_file, 'wb') as f:
