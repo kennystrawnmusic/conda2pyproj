@@ -24,3 +24,14 @@ conda2pyproj --project-name test --version '0.2.0'
 ```
 
 That's it. When done, you will have a new project directory, and in it, a `pyproject.toml` file containing dependencies from the entire Conda environment, dumped for your enjoyment.
+
+## Installation Instructions
+
+Because this project has a `pyproject.toml` of its own (and in fact it eas used to generate that `pyproject.toml` for itself), you can simply use pip to install it from inside your activated `conda` environment:
+
+```
+conda activate your_env
+pip install git+https://github.com/kennystrawnmusic/conda2pyproj
+```
+
+After that, it should work completely out of the box.
