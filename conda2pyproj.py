@@ -9,18 +9,14 @@ from argparse import ArgumentParser
 def get_all_conda_channels():
     """Retrieves all configured conda channels via CLI."""
     try:
-        # --json flag makes parsing reliable
         result = run(
             ["conda", "config", "--show", "channels", "--json"],
             capture_output=True, text=True, check=True, shell=True
         )
         config_data = loads(result.stdout)
-
-        # Returns the list of channels from the 'channels' key
         return config_data.get('channels')
 
     except (CalledProcessError, JSONDecodeError):
-        # Fallback to safe defaults if the command fails
         return ['conda-forge', 'defaults']
 
 def main():
@@ -44,7 +40,6 @@ def main():
 
     all_channels = get_all_conda_channels()
 
-    # Initialize UniDep-specific structure
     unidep_deps = []
     for dep in conda_env.get('dependencies', []):
         if isinstance(dep, str):
@@ -53,14 +48,12 @@ def main():
                 unidep_deps.append(name)
         elif isinstance(dep, dict) and 'pip' in dep:
             for pip_dep in dep['pip']:
-                # UniDep format for pip-only dependencies
                 unidep_deps.append({"pip": pip_dep})
 
     pyproject = {
         "project": {
             "name": args.project_name,
             "version": args.version,
-            # UniDep will automatically populate this field during build/install
             "dynamic": ["dependencies"],
             "requires-python": f">={version_info.major}.{version_info.minor}"
         },
