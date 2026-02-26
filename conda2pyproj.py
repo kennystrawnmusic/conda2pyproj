@@ -55,7 +55,7 @@ def main():
             "name": args.project_name,
             "version": args.version,
             "dynamic": ["dependencies"],
-            "requires-python": f">={version_info.major}.{version_info.minor}"
+            "requires-python": f">={version_info.major}.{version_info.minor}",
         },
         "tool": {
             "unidep": {
