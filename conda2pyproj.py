@@ -70,7 +70,20 @@ def ensure_conda_press():
 def get_requires_for_build_wheel(config_settings=None):
     ensure_conda_press()
     run_conda_press()
-    return _orig.get_requires_for_build_wheel(config_settings)
+    
+    # Get the original requirements
+    reqs = list(_orig.get_requires_for_build_wheel(config_settings) or [])
+    
+    # Add absolute paths to the wheels we just built
+    temp_wheel_dir = Path("portable_wheels").resolve()
+
+    if temp_wheel_dir.exists():
+        for whl in temp_wheel_dir.glob("*.whl"):
+
+            # Using as_uri() ensures correct file:/// formatting
+            reqs.append(f"{whl.stem.split('-')[0]} @ {whl.as_uri()}")
+            
+    return reqs
 
 def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     run_conda_press()
@@ -125,9 +138,8 @@ def main():
                 print(f"  [PyPI] {name}")
                 unidep_deps.append(name)
             else:
-                # Direct file reference for the build hook to fulfill
-                print(f"  [Conda-Only] {name} -> mapping to local wheel")
-                unidep_deps.append(f"{name} @ file://./portable_wheels/{name}-0.1.0-py3-none-any.whl")
+                # We now handle this from the build script
+                continue
         
         elif isinstance(dep, dict) and 'pip' in dep:
             for pip_dep in dep['pip']:
