@@ -9,6 +9,17 @@ To work around this problem, I scripted together this tool, which:
 4. Creates a new project directory if one doesn't already exist
 5. Automatically generates a UniDep-compatible `pyproject.toml` file containing the entire Conda environment
 
+## Installation
+
+Because this project has a `pyproject.toml` of its own (and in fact it eas used to generate that `pyproject.toml` for itself), you can simply use pip to install it from inside your activated `conda` environment:
+
+```
+conda activate your_env
+pip install git+https://github.com/kennystrawnmusic/conda2pyproj
+```
+
+After that, it should work completely out of the box.
+
 ## Usage
 
 The only required parameter is the name of the Python project to generate:
@@ -24,14 +35,3 @@ conda2pyproj --project-name test --version '0.2.0'
 ```
 
 That's it. When done, you will have a new project directory, and in it, a `pyproject.toml` file containing dependencies from the entire Conda environment, dumped for your enjoyment.
-
-## Installation Instructions
-
-Because this project has a `pyproject.toml` of its own (and in fact it eas used to generate that `pyproject.toml` for itself), you can simply use pip to install it from inside your activated `conda` environment:
-
-```
-conda activate your_env
-pip install git+https://github.com/kennystrawnmusic/conda2pyproj
-```
-
-After that, it should work completely out of the box.
