@@ -22,16 +22,16 @@ After that, it should work completely out of the box.
 
 ## Usage
 
-The only required parameter is the name of the Python project to generate:
+The only required parameters are the name and description of the Python project to generate:
 
 ```
-conda2pyproj --project-name test
+conda2pyproj --project-name test --project-description 'This is a test'
 ```
 
 Optionally, one can specify the version of the target package:
 
 ```
-conda2pyproj --project-name test --version '0.2.0'
+conda2pyproj --project-name test --project-description 'This is a test' --version '0.2.0'
 ```
 
 That's it. When done, you will have a new project directory, and in it, a `pyproject.toml` file containing dependencies from the entire Conda environment, dumped for your enjoyment.
