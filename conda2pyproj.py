@@ -114,7 +114,7 @@ def main():
 
     try:
         result = run(
-            ["conda", "env", "export"], 
+            ["conda", "env", "export", "--from-history"], 
             capture_output=True, text=True, check=True, shell=True
         )
         conda_env = safe_load(result.stdout)
